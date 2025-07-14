@@ -12,6 +12,11 @@ def load_model(path="spam_model_filter.pkl"):
 
 model, vectorizer = load_model()
 
+@app.route("/", methods=["GET"])
+def home():
+    return jsonify({"message": "API Filter Ulasan Spam aktif!"})
+
+
 @app.route("/predict", methods=["POST"])
 def predict():
     data = request.get_json()
@@ -26,6 +31,9 @@ def predict():
     return jsonify({"prediction": prediction})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
+
 
 
