@@ -1,16 +1,16 @@
-# app.py
-
 from flask import Flask, request, jsonify
-import joblib
 from flask_cors import CORS
-
-# Load model dan vectorizer dari file pkl
-bundle = joblib.load("spam_model_bundle.pkl")
-model = bundle["model"]
-vectorizer = bundle["vectorizer"]
+import joblib
+import sys
 
 app = Flask(__name__)
 CORS(app, origins=["http://127.0.0.1:8000", "http://127.0.0.1:5173"])
+
+def load_model(path="spam_model_filter.pkl"):
+    bundle = joblib.load(path)
+    return bundle["model"], bundle["vectorizer"]
+
+model, vectorizer = load_model()
 
 @app.route("/predict", methods=["POST"])
 def predict():
@@ -20,13 +20,11 @@ def predict():
     if not text:
         return jsonify({"error": "Teks tidak boleh kosong"}), 400
 
-    # Transformasi dan prediksi
-    vectorized = vectorizer.transform([text])
-    prediction = model.predict(vectorized)[0]
+    vectorized_text = vectorizer.transform([text])
+    prediction = int(model.predict(vectorized_text)[0])
 
-    vec  = vectorizer.transform([text])
-    pred = int(model.predict(vec)[0])          # 0 / 1
-    return jsonify({"prediction": pred})       # ← field bernama prediction
-                                               #     (biar konsisten di Nest)
+    return jsonify({"prediction": prediction})
+
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000, debug=True)
+
